@@ -3,11 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Soilephone — Главная</title>
+  <title data-i18n="nav.main">Soilephone — Главная</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-…" crossorigin="anonymous" />
+        <!-- PNG favicon (modern browsers) -->
+<link
+  rel="icon"
+  type="image/png"
+  sizes="32x32"
+  href="images/Logo.png"
+/>
+
+<!-- Legacy shortcut icon support -->
+<link
+  rel="shortcut icon"
+  href="images/Logo.png"
+  type="image/png"
+/>
+
+
 </head>
 <body>
 
@@ -20,7 +36,7 @@
 
 
     <div class="lang-switcher">
-      <span class="lang-option" data-lang="kz">ҚАЗ</span>
+      <span class="lang-option" data-lang="kk">ҚАЗ</span>
       <span class="lang-option" data-lang="ru">РУС</span>
       <span class="lang-option" data-lang="en">ENG</span>
     </div>
@@ -128,6 +144,12 @@
       <summary data-i18n="nav.instructions">Instructions</summary>
       <div class="accordion-content">
         <!-- your Instructions content -->
+         <a href="#" id="subscriber-instructions" data-i18n="instructions.instructionSubscriber">
+      </a>
+         <div id="instructions-videos"></div>
+         <a href="#" id="user-instructions" data-i18n="instructions.instructionUser">
+      </a>
+         <div id="user-instructions-videos"></div>
       </div>
     </details>
 
@@ -135,7 +157,10 @@
     <details>
       <summary data-i18n="nav.payment">Payment Methods</summary>
       <div class="accordion-content">
-        <!-- your Payment Methods content -->
+        <p data-i18n="payment.description"></p>
+        <a href="#" id="kaspi-payment-instructions" data-i18n="payment.payment1"></a><br>
+        <a href="#" id="tarlan-payment-instructions" data-i18n="payment.payment2"></a><br>
+        <a href="https://wa.me/77055531453" data-i18n="payment.payment3"></a>
       </div>
     </details>
 
@@ -152,14 +177,23 @@
   <!-- Footer -->
   <footer>
     <div class="container footer-links">
+<div class="footer-col">
+  <ul>
+    <li>
+      <a href="#" id="offer-link" data-i18n="footer.offer">
+        Публичная оферта
+      </a>
+    </li>
+    <li>
+      <a href="#" id="agreement-link" data-i18n="footer.agreement">
+        Пользовательское соглашение
+      </a>
+    </li>
+  </ul>
+</div>
+
       <div class="footer-col">
-        <ul>
-          <li><a href="#">Публичная оферта</a></li>
-          <li><a href="#">Пользовательское соглашение</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <p>Казахстан, Северо-Казахстанская область, город 
+        <p data-i18n="footer.address">Казахстан, Северо-Казахстанская область, город 
 Петропавловск, улица Батыр Баян, здание 11, почтовый 
 индекс 150000</p>
         <p>soilephone.kz@gmail.com</p>

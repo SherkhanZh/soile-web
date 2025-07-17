@@ -6,7 +6,8 @@ const translations = {
       tariffs:     "Tariffs and limits for Subscribers",
       limits:      "User Limits",
       instructions:"Instructions",
-      payment:     "Payment Links"
+      payment:     "Payment Links",
+      main: "Soilephone - Home"
     },
     about: {
       title: "The SOILEPHONE video call service is aimed at providing video communication to closed user groups",
@@ -47,7 +48,8 @@ const translations = {
     footer: {
       offer:     "Public Offer",
       agreement: "User Agreement",
-      contacts:  "Contacts"
+      contacts:  "Contacts",
+      address: "Kazakhstan, North Kazakshtan Region, Petropavlovsk, Batyr Bayan str, building 11, postal code 150000"
     }
   },
 
@@ -61,7 +63,8 @@ const translations = {
       tariffs:     "Тарифы и лимиты для Абонента",
       limits:      "Лимиты для Пользователя",
       instructions:"Инструкция",
-      payment:     "Ссылки на оплату"
+      payment:     "Ссылки на оплату",
+      main: "Soilephone - Главная"
     },
     about: {
       title: "Сервис видео-звонков SOILEPHONE направлен на обеспечение видео-связью закрытых групп пользователей.",
@@ -102,7 +105,8 @@ const translations = {
     footer: {
       offer:     "Публичная оферта",
       agreement: "Пользовательское соглашение",
-      contacts:  "Контакты"
+      contacts:  "Контакты",
+      address: "Казахстан, Северо-Казахстанская область, город Петропавловск, улица Батыр Баян, здание 11, почтовый индекс 150000"
     }
   },
 
@@ -110,13 +114,14 @@ const translations = {
 
 
 
-  kz: {
+  kk: {
     nav: {
       about:       "Біз туралы",
       tariffs:     "Абонент үшін тарифтер мен лимиттер",
       limits:      "Пайдаланушы үшін шектеулер",
       instructions:"Нұсқаулар",
-      payment:     "Төлем сілтемелері"
+      payment:     "Төлем сілтемелері",
+      main: "Soilephone - Басты"
     },
     about: {
       title: "SOILEPHONE бейне қоңырау қызметі пайдаланушылардың жабық топтарын бейне байланыспен қамтамасыз етуге бағытталған.",
@@ -157,12 +162,14 @@ const translations = {
     footer: {
       offer:     "Қоғамдық ұсыныс",
       agreement: "Қолданушы келісімі",
-      contacts:  "Байланыс"
+      contacts:  "Байланыс",
+      address: "Қазақстан, Солтүстік Қазақстан облысы, Петропавл қаласы, Батыр Баян көшесі, 11 ғимарат, пошта индексі 150000"
     }
   }
 };
 
-// 2) Helpers
+
+// 2) Core helpers
 function applyTranslations(lang) {
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
@@ -179,24 +186,185 @@ function updateLangSwitcher(lang) {
   });
 }
 
-// 3) Init on DOM ready
-document.addEventListener("DOMContentLoaded", () => {
-  // a) Restore or default language
-  const savedLang = localStorage.getItem('lang') || 'en';
-  applyTranslations(savedLang);
-  updateLangSwitcher(savedLang);
+async function fetchWebviewLink(slug, lang) {
+  try {
+    const res  = await fetch(`http://91.147.92.65/api/webview-links/${slug}?lang=${lang}`);
+    const json = await res.json();
+    if (json.success && json.data && json.data.url) {
+      return { url: json.data.url, name: json.data.name };
+    }
+  } catch (e) {
+    console.error('Fetch error', slug, e);
+  }
+  return null;
+}
 
-  // b) Wire up the three language spans
+async function updatePaymentLinks(lang) {
+  console.log(`⚙️ updatePaymentLinks( ${lang} )`);
+
+  const items = [
+    { id: 'kaspi-payment-instructions', slug: 'kaspi_payment_instruction' },
+    { id: 'tarlan-payment-instructions', slug: 'tarlan_payment_instruction' }
+  ];
+
+  for (let {id, slug} of items) {
+    const el = document.getElementById(id);
+    console.log(` • element #${id}:`, el);
+    if (!el) {
+      console.warn(`   → no element with id="${id}" found—check your HTML`);
+      continue;
+    }
+
+    console.log(`   → fetching slug "${slug}"?lang=${lang}`);
+    const data = await fetchWebviewLink(slug, lang);
+    console.log(`   ← fetchWebviewLink returned:`, data);
+
+    if (data && data.url) {
+      console.log(`   → setting href of #${id} to`, data.url);
+      el.href        = data.url;
+      el.textContent = data.name;
+    } else {
+      console.warn(`   → no URL in response for slug "${slug}".`);
+    }
+  }
+}
+
+
+async function updateFooterLinks(lang) {
+  // public offer
+  const offer = await fetchWebviewLink('offer_agreement', lang);
+  const offerEl = document.getElementById('offer-link');
+  if (offer && offerEl) {
+    offerEl.href        = offer.url;
+    offerEl.textContent = offer.name;
+  }
+
+  // user agreement
+  const agr = await fetchWebviewLink('user_agreement', lang);
+  const agrEl = document.getElementById('agreement-link');
+  if (agr && agrEl) {
+    agrEl.href        = agr.url;
+    agrEl.textContent = agr.name;
+  }
+
+  // user instruction (if you have this in your HTML)
+  const usr = await fetchWebviewLink('user_instruction', lang);
+  const usrEl = document.getElementById('user-instructions');
+  if (usr && usrEl) {
+    usrEl.href        = usr.url;
+    usrEl.textContent = usr.name;
+  }
+
+  // subscriber instruction (note the spelling here must match your HTML!)
+  const sub = await fetchWebviewLink('subscriber_instruction', lang);
+  const subEl = document.getElementById('subscriber-instructions');
+  if (sub && subEl) {
+    subEl.href        = sub.url;
+    subEl.textContent = sub.name;
+  }
+}
+
+// … after your updateFooterLinks(lang) declaration …
+
+async function updateUserInstructionVideos(lang) {
+  const apiLang = lang;
+//   const endpoints = [
+//     `http://91.147.92.65/api/webview-links/subscriber_video_instruction?${apiLang}`,
+//     `http://91.147.92.65/api/webview-links/user_video_instruction?${apiLang}`
+//   ];
+
+  const container = document.getElementById("user-instructions-videos");
+  if (!container) return;
+  container.innerHTML = ''; // clear old videos
+
+    try {
+      const res  = await fetch(`http://91.147.92.65/api/webview-links/user_video_instruction?${lang}`);
+      const json = await res.json();
+      if (json.success && json.data && json.data.url) {
+        // convert normal YouTube URL to embed form
+        const embedUrl = json.data.url.replace('watch?v=', 'embed/');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'video-wrapper';
+        wrapper.innerHTML = `
+          <iframe
+            src="${embedUrl}"
+            title="${json.data.name}"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>`;
+        container.appendChild(wrapper);
+      }
+    } catch (err) {
+      console.error('Instruction video fetch failed:', err);
+    }
+}
+
+async function updateInstructionVideos(lang) {
+  const apiLang = lang;
+//   const endpoints = [
+//     `http://91.147.92.65/api/webview-links/subscriber_video_instruction?${apiLang}`,
+//     `http://91.147.92.65/api/webview-links/user_video_instruction?${apiLang}`
+//   ];
+
+  const container = document.getElementById("instructions-videos");
+  if (!container) return;
+  container.innerHTML = ''; // clear old videos
+
+    try {
+      const res  = await fetch(`http://91.147.92.65/api/webview-links/subscriber_video_instruction?${lang}`);
+      const json = await res.json();
+      if (json.success && json.data && json.data.url) {
+        // convert normal YouTube URL to embed form
+        const embedUrl = json.data.url.replace('watch?v=', 'embed/');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'video-wrapper';
+        wrapper.innerHTML = `
+          <iframe
+            src="${embedUrl}"
+            title="${json.data.name}"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>`;
+        container.appendChild(wrapper);
+      }
+    } catch (err) {
+      console.error('Instruction video fetch failed:', err);
+    }
+}
+
+
+// 3) Kick everything off once DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  const savedLang = localStorage.getItem('lang') || 'en';
+
+  // Initial render
+  applyTranslations( savedLang );
+  updateLangSwitcher( savedLang );
+  updateFooterLinks( savedLang );
+  updateInstructionVideos( savedLang );
+  updateUserInstructionVideos( savedLang );
+  updatePaymentLinks( savedLang );    // ← add this
+
+  // When the user clicks ҚАЗ/РУС/ENG
   document.querySelectorAll('.lang-option').forEach(el => {
-    el.addEventListener('click', () => {
-      const lang = el.dataset.lang;
-      if (!translations[lang]) return;
-      localStorage.setItem('lang', lang);
-      applyTranslations(lang);
-      updateLangSwitcher(lang);
+    el.addEventListener('click', async () => {
+      const L = el.dataset.lang;
+      if (!translations[L]) return;
+      localStorage.setItem('lang', L);
+
+      applyTranslations( L );
+      updateLangSwitcher( L );
+      await updateFooterLinks( L );
+      await updateInstructionVideos( L );
+      await updateUserInstructionVideos (L );
+      await updatePaymentLinks( L );   // ← and add this
     });
   });
 });
+
+
 
 
 

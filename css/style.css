@@ -296,6 +296,19 @@ main.container p,
   background: #000;      /* nice fallback if poster fails */
 }
 
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 ratio */
+  margin: 20px 0;
+}
+.video-wrapper iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+
+
 
 
 

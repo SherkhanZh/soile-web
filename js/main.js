@@ -187,17 +187,21 @@ function updateLangSwitcher(lang) {
 }
 
 async function fetchWebviewLink(slug, lang) {
+  const url = `/api-proxy.php?slug=${encodeURIComponent(slug)}&lang=${encodeURIComponent(lang)}`;
   try {
-    const res  = await fetch(`http://91.147.92.65/api/webview-links/${slug}?lang=${lang}`);
+    const res  = await fetch(url);
+    if (!res.ok) return null;
     const json = await res.json();
-    if (json.success && json.data && json.data.url) {
+    if (json.success && json.data?.url) {
       return { url: json.data.url, name: json.data.name };
     }
   } catch (e) {
-    console.error('Fetch error', slug, e);
+    console.error('Proxy fetch error', slug, e);
   }
   return null;
 }
+
+
 
 async function updatePaymentLinks(lang) {
   console.log(`⚙️ updatePaymentLinks( ${lang} )`);
@@ -231,108 +235,89 @@ async function updatePaymentLinks(lang) {
 
 
 async function updateFooterLinks(lang) {
-  // public offer
-  const offer = await fetchWebviewLink('offer_agreement', lang);
-  const offerEl = document.getElementById('offer-link');
-  if (offer && offerEl) {
-    offerEl.href        = offer.url;
-    offerEl.textContent = offer.name;
-  }
+  const mapping = [
+    { id: 'offer-link',         slug: 'offer_agreement'       },
+    { id: 'agreement-link',     slug: 'user_agreement'        },
+    // these next two only if you actually have them in your HTML:
+    { id: 'user-instructions',      slug: 'user_instruction'      },
+    { id: 'subscriber-instructions',slug: 'subscriber_instruction'}
+  ];
 
-  // user agreement
-  const agr = await fetchWebviewLink('user_agreement', lang);
-  const agrEl = document.getElementById('agreement-link');
-  if (agr && agrEl) {
-    agrEl.href        = agr.url;
-    agrEl.textContent = agr.name;
-  }
-
-  // user instruction (if you have this in your HTML)
-  const usr = await fetchWebviewLink('user_instruction', lang);
-  const usrEl = document.getElementById('user-instructions');
-  if (usr && usrEl) {
-    usrEl.href        = usr.url;
-    usrEl.textContent = usr.name;
-  }
-
-  // subscriber instruction (note the spelling here must match your HTML!)
-  const sub = await fetchWebviewLink('subscriber_instruction', lang);
-  const subEl = document.getElementById('subscriber-instructions');
-  if (sub && subEl) {
-    subEl.href        = sub.url;
-    subEl.textContent = sub.name;
+  for (let {id, slug} of mapping) {
+    const el = document.getElementById(id);
+    if (!el) {
+      // no such <a> on this page → skip it
+      continue;
+    }
+    const info = await fetchWebviewLink(slug, lang);
+    if (info) {
+      el.href        = info.url;
+      el.textContent = info.name;
+    }
   }
 }
+
 
 // … after your updateFooterLinks(lang) declaration …
 
-async function updateUserInstructionVideos(lang) {
-  const apiLang = lang;
-//   const endpoints = [
-//     `http://91.147.92.65/api/webview-links/subscriber_video_instruction?${apiLang}`,
-//     `http://91.147.92.65/api/webview-links/user_video_instruction?${apiLang}`
-//   ];
-
-  const container = document.getElementById("user-instructions-videos");
-  if (!container) return;
-  container.innerHTML = ''; // clear old videos
-
-    try {
-      const res  = await fetch(`http://91.147.92.65/api/webview-links/user_video_instruction?${lang}`);
-      const json = await res.json();
-      if (json.success && json.data && json.data.url) {
-        // convert normal YouTube URL to embed form
-        const embedUrl = json.data.url.replace('watch?v=', 'embed/');
-        const wrapper = document.createElement('div');
-        wrapper.className = 'video-wrapper';
-        wrapper.innerHTML = `
-          <iframe
-            src="${embedUrl}"
-            title="${json.data.name}"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-          </iframe>`;
-        container.appendChild(wrapper);
-      }
-    } catch (err) {
-      console.error('Instruction video fetch failed:', err);
-    }
-}
-
+/**
+ * Fetches the “subscriber” instruction video and embeds it
+ * into the #instructions-videos container.
+ */
 async function updateInstructionVideos(lang) {
-  const apiLang = lang;
-//   const endpoints = [
-//     `http://91.147.92.65/api/webview-links/subscriber_video_instruction?${apiLang}`,
-//     `http://91.147.92.65/api/webview-links/user_video_instruction?${apiLang}`
-//   ];
-
   const container = document.getElementById("instructions-videos");
   if (!container) return;
-  container.innerHTML = ''; // clear old videos
+  container.innerHTML = "";  // clear old
 
-    try {
-      const res  = await fetch(`http://91.147.92.65/api/webview-links/subscriber_video_instruction?${lang}`);
-      const json = await res.json();
-      if (json.success && json.data && json.data.url) {
-        // convert normal YouTube URL to embed form
-        const embedUrl = json.data.url.replace('watch?v=', 'embed/');
-        const wrapper = document.createElement('div');
-        wrapper.className = 'video-wrapper';
-        wrapper.innerHTML = `
-          <iframe
-            src="${embedUrl}"
-            title="${json.data.name}"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-          </iframe>`;
-        container.appendChild(wrapper);
-      }
-    } catch (err) {
-      console.error('Instruction video fetch failed:', err);
-    }
+  // 1) Fetch the subscriber video link
+  const info = await fetchWebviewLink("subscriber_video_instruction", lang);
+  if (info?.url) {
+    // 2) Convert to embed URL
+    const embedUrl = info.url.replace("watch?v=", "embed/");
+    // 3) Inject the iframe
+    const wrap = document.createElement("div");
+    wrap.className = "video-wrapper";
+    wrap.innerHTML = `
+      <iframe
+        src="${embedUrl}"
+        title="${info.name}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>`;
+    container.appendChild(wrap);
+  }
 }
+
+/**
+ * Fetches the “user” instruction video and embeds it
+ * into the #user-instructions-videos container.
+ */
+async function updateUserInstructionVideos(lang) {
+  const container = document.getElementById("user-instructions-videos");
+  if (!container) return;
+  container.innerHTML = "";  // clear old
+
+  // 1) Fetch the user video link
+  const info = await fetchWebviewLink("user_video_instruction", lang);
+  if (info?.url) {
+    // 2) Convert to embed URL
+    const embedUrl = info.url.replace("watch?v=", "embed/");
+    // 3) Inject the iframe
+    const wrap = document.createElement("div");
+    wrap.className = "video-wrapper";
+    wrap.innerHTML = `
+      <iframe
+        src="${embedUrl}"
+        title="${info.name}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>`;
+    container.appendChild(wrap);
+  }
+}
+
 
 
 // 3) Kick everything off once DOM is ready

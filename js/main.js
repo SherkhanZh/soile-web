@@ -47,7 +47,7 @@ const translations = {
     },
     footer: {
       offer:     "Public Offer",
-      agreement: "User Agreement",
+      agreement: "Privacy Policy",
       contacts:  "Contacts",
       address: "Kazakhstan, North Kazakshtan Region, Petropavlovsk, Batyr Bayan str, building 11, postal code 150000"
     }
@@ -104,7 +104,7 @@ const translations = {
     },
     footer: {
       offer:     "Публичная оферта",
-      agreement: "Пользовательское соглашение",
+      agreement: "Политика конфиденциальности",
       contacts:  "Контакты",
       address: "Казахстан, Северо-Казахстанская область, город Петропавловск, улица Батыр Баян, здание 11, почтовый индекс 150000"
     }
@@ -161,7 +161,7 @@ const translations = {
     },
     footer: {
       offer:     "Қоғамдық ұсыныс",
-      agreement: "Қолданушы келісімі",
+      agreement: "Құпиялылық саясаты",
       contacts:  "Байланыс",
       address: "Қазақстан, Солтүстік Қазақстан облысы, Петропавл қаласы, Батыр Баян көшесі, 11 ғимарат, пошта индексі 150000"
     }
@@ -236,8 +236,7 @@ async function updatePaymentLinks(lang) {
 
 async function updateFooterLinks(lang) {
   const mapping = [
-    { id: 'offer-link',         slug: 'offer_agreement'       },
-    { id: 'agreement-link',     slug: 'user_agreement'        },
+    // offer-link and agreement-link now point to local PDFs in assets/ (see index.html)
     // these next two only if you actually have them in your HTML:
     { id: 'user-instructions',      slug: 'user_instruction'      },
     { id: 'subscriber-instructions',slug: 'subscriber_instruction'}

@@ -187,7 +187,7 @@ function updateLangSwitcher(lang) {
 }
 
 async function fetchWebviewLink(slug, lang) {
-  const url = `/api-proxy.php?slug=${encodeURIComponent(slug)}&lang=${encodeURIComponent(lang)}`;
+  const url = `https://api.soilephone.kz/api/webview-links/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`;
   try {
     const res  = await fetch(url);
     if (!res.ok) return null;
@@ -196,7 +196,7 @@ async function fetchWebviewLink(slug, lang) {
       return { url: json.data.url, name: json.data.name };
     }
   } catch (e) {
-    console.error('Proxy fetch error', slug, e);
+    console.error('Fetch error', slug, e);
   }
   return null;
 }
